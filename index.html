@@ -75,7 +75,10 @@
       const additionalTimezones = {
         'Spain': ['Europe/Madrid', 'Europe/Barcelona', 'Europe/Seville'],
         'Argentina': ['America/Argentina/Buenos_Aires', 'America/Argentina/Cordoba', 'America/Argentina/Mendoza'],
-        'Pakistan': ['Asia/Karachi', 'Asia/Lahore', 'Asia/Islamabad']
+        'Pakistan': ['Asia/Karachi', 'Asia/Lahore', 'Asia/Islamabad'],
+        'Ukraine': ['Europe/Kiev', 'Europe/Uzhgorod', 'Europe/Zaporozhye'],
+        'Brazil': ['America/Sao_Paulo', 'America/Rio_Branco', 'America/Manaus'],
+        'Scotland': ['Europe/London', 'Europe/Edinburgh', 'Europe/Glasgow']
       };
 
       for (const country in additionalTimezones) {
@@ -120,11 +123,9 @@
       const memberToEdit = members.find(member => member.name === memberName);
 
       if (memberToEdit) {
-        const newName = prompt('Enter new name:', memberToEdit.name);
         const newTimezone = prompt('Select a new timezone:', memberToEdit.timezone);
 
-        if (newName && newTimezone) {
-          memberToEdit.name = newName;
+        if (newTimezone) {
           memberToEdit.timezone = newTimezone;
           localStorage.setItem('members', JSON.stringify(members));
           displayMembers();
