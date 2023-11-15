@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timezone Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #timezoneList {
+      list-style: none;
+      padding: 0;
+      width: 70%;
+      margin-left: 0; /* Align to the left */
+    }
+
+    .member {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+
+    .member-info {
+      flex: 1; /* Take up remaining space */
+    }
+
+    .edit-btn,
+    .delete-btn {
+      cursor: pointer;
+      color: red;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Timezone Tracker</h1>
+  <div>
+    <label for="memberName">Member Name:</label>
+    <input type="text" id="memberName" placeholder="Enter member name">
+
+    <label for="timezone">Timezone:</label>
+    <select id="timezone"></select>
+
+    <button onclick="addMember()">Add Member</button>
+  </div>
+
+  <h2>Team Members</h2>
+  <ul id="timezoneList"></ul>
+
+  <script>
+    function getAllTimezones() {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    }
+
+    function populateTimezonesDropdown() {
+      const timezoneDropdown = document.getElementById('timezone');
+      const allTimezones = getAllTimezones();
+      timezoneDropdown.innerHTML = '';
+
+      allTimezones.split(', ').forEach(timezone => {
+        const option = document.createElement('option');
+        option.value = timezone;
+        option.textContent = timezone;
+        timezoneDropdown.appendChild(option);
+      });
+
+      const additionalTimezones = {
+        'Spain': ['Europe/Madrid', 'Europe/Barcelona', 'Europe/Seville'],
+        'Argentina': ['America/Argentina/Buenos_Aires', 'America/Argentina/Cordoba', 'America/Argentina/Mendoza'],
+        'Pakistan': ['Asia/Karachi', 'Asia/Lahore', 'Asia/Islamabad']
+      };
+
+      for (const country in additionalTimezones) {
+        additionalTimezones[country].forEach(timezone => {
+          const option = document.createElement('option');
+          option.value = timezone;
+          option.textContent = timezone;
+          timezoneDropdown.appendChild(option);
+        });
+      }
+    }
+
+    function addMember() {
+      const memberName = document.getElementById('memberName').value;
+      const timezone = document.getElementById('timezone').value;
+
+      if (memberName && timezone) {
+        const member = {
+          name: memberName,
+          timezone: timezone,
+        };
+
+        let members = JSON.parse(localStorage.getItem('members')) || [];
+        members.push(member);
+        localStorage.setItem('members', JSON.stringify(members));
+
+        displayMembers();
+      } else {
+        alert('Please enter member name and select a timezone.');
+      }
+    }
+
+    function removeMember(memberName) {
+      let members = JSON.parse(localStorage.getItem('members')) || [];
+      members = members.filter(member => member.name !== memberName);
+      localStorage.setItem('members', JSON.stringify(members));
+      displayMembers();
+    }
+
+    function editMember(memberName) {
+      let members = JSON.parse(localStorage.getItem('members')) || [];
+      const memberToEdit = members.find(member => member.name === memberName);
+
+      if (memberToEdit) {
+        const newName = prompt('Enter new name:', memberToEdit.name);
+        const newTimezone = prompt('Select a new timezone:', memberToEdit.timezone);
+
+        if (newName && newTimezone) {
+          memberToEdit.name = newName;
+          memberToEdit.timezone = newTimezone;
+          localStorage.setItem('members', JSON.stringify(members));
+          displayMembers();
+        } else {
+          alert('Invalid input. Member not updated.');
+        }
+      }
+    }
+
+    function displayMembers() {
+      const timezoneList = document.getElementById('timezoneList');
+      timezoneList.innerHTML = '';
+
+      const members = JSON.parse(localStorage.getItem('members')) || [];
+
+      members.forEach(member => {
+        const li = document.createElement('li');
+        li.className = 'member';
+        li.id = member.name;
+
+        const memberInfo = document.createElement('div');
+        memberInfo.className = 'member-info';
+        memberInfo.textContent = `${member.name} - ${getTimeInTimeZone(member.timezone)}`;
+
+        const editBtn = document.createElement('span');
+        editBtn.className = 'edit-btn';
+        editBtn.textContent = 'Edit';
+        editBtn.onclick = () => editMember(member.name);
+
+        const deleteBtn = document.createElement('span');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.textContent = 'X';
+        deleteBtn.onclick = () => removeMember(member.name);
+
+        li.appendChild(memberInfo);
+        li.appendChild(editBtn);
+        li.appendChild(deleteBtn);
+
+        timezoneList.appendChild(li);
+      });
+
+      setInterval(() => {
+        members.forEach(member => {
+          const li = document.getElementById(member.name);
+          li.querySelector('.member-info').textContent = `${member.name} - ${getTimeInTimeZone(member.timezone)}`;
+        });
+      }, 1000);
+    }
+
+    function getTimeInTimeZone(timezone) {
+      const options = { timeZone: timezone, hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true };
+      return new Date().toLocaleTimeString('en-US', options);
+    }
+
+    displayMembers();
+    populateTimezonesDropdown();
+  </script>
+</body>
+</html>
